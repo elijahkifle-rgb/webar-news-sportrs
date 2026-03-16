@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>FootAR - Match View</title>
+
+    <!-- 1. A-Frame MUST load before AR.js -->
+    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+
+    <!-- 2. AR.js for A-Frame (marker tracking) -->
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { overflow: hidden; font-family: Arial, sans-serif; }
+
+        /* UI layer sits on top of the AR canvas */
+        #ui-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        /* Score bar at the top */
+        #score-bar {
+            background: rgba(0,0,0,0.75);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+            font-size: 18px;
+            pointer-events: all;
+        }
+
+        #score {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ffff00;
+        }
+
+        /* Hint shown before marker is found */
+        #scan-hint {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            text-align: center;
+            text-shadow: 0 0 8px rgba(0,0,0,0.9);
+        }
+
+        #scan-hint p { font-size: 18px; margin-top: 10px; }
+
+        /* Player list panel at the bottom */
+        #player-panel {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            background: rgba(0,0,0,0.85);
+            padding: 12px;
+            display: none;
+            pointer-events: all;
+            max-height: 50vh;
+            overflow-y: auto;
+        }
+
+        #player-panel h3 {
+            color: white;
+            margin-bottom: 8px;
+            font-size: 14px;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        #player-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .player-btn {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 8px;
+            color: white;
+            padding: 8px 12px;
+            font-size: 14px;
+            text-align: left;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .player-btn:active { background: rgba(255,255,255,0.2); }
+
+        /* Stats popup */
+        #stats-popup {
+            position: absolute;
+            top: 70px; left: 10px; right: 10px;
+            background: rgba(10,14,26,0.95);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 12px;
+            padding: 16px;
+            color: white;
+            display: none;
+            pointer-events: all;
+        }
+
+        #stats-popup h2 { font-size: 18px; margin-bottom: 10px; }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+            font-size: 14px;
+        }
+
+        .stat-label { color: rgba(255,255,255,0.5); }
+        .stat-value { font-weight: bold; }
+
+        #close-stats {
+            margin-top: 12px;
+            background: #4361ee;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            padding: 8px 16px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 14px;
+        }
+
+        /* Loading spinner */
+        #loading {
+            position: fixed;
+            inset: 0;
+            background: #0a0e1a;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            z-index: 999;
+        }
+
+        #loading p { margin-top: 16px; font-size: 16px; }
+
+        .spinner {
+            width: 40px; height: 40px;
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top: 3px solid #4361ee;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<!-- Loading screen -->
+<div id="loading">
+    <div class="spinner"></div>
+    <p id="loading-text">Loading match data...</p>
+</div>
+
+<!-- AR.js + A-Frame scene -->
+<a-scene
+        embedded
+        arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix;"
+        renderer="logarithmicDepthBuffer: true;"
+        vr-mode-ui="enabled: false"
+        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0;"
+>
+    <a-marker id="main-marker" type="hiro" smooth="true">
+
+        <!-- Background panel -->
+        <a-plane
+                position="0 0 0"
+                rotation="-90 0 0"
+                width="1.6" height="0.8"
+                color="#000000"
+                opacity="0.8"
+                side="double">
+        </a-plane>
+
+        <!-- Home team name -->
+        <a-text
+                id="ar-home"
+                value="HOME"
+                position="-0.5 0.01 0.15"
+                rotation="-90 0 0"
+                color="white"
+                scale="0.4 0.4 0.4"
+                align="center">
+        </a-text>
+
+        <!-- Score -->
+        <a-text
+                id="ar-score"
+                value="0 - 0"
+                position="0 0.01 0.15"
+                rotation="-90 0 0"
+                color="#ffff00"
+                scale="0.55 0.55 0.55"
+                align="center">
+        </a-text>
+
+        <!-- Away team name -->
+        <a-text
+                id="ar-away"
+                value="AWAY"
+                position="0.5 0.01 0.15"
+                rotation="-90 0 0"
+                color="white"
+                scale="0.4 0.4 0.4"
+                align="center">
+        </a-text>
+
+        <!-- Match status -->
+        <a-text
+                id="ar-status"
+                value="LIVE"
+                position="0 0.01 -0.1"
+                rotation="-90 0 0"
+                color="#00ff88"
+                scale="0.3 0.3 0.3"
+                align="center">
+        </a-text>
+
+    </a-marker>
+
+    <a-entity camera></a-entity>
+</a-scene>
+
+<!-- HTML UI overlay -->
+<div id="ui-overlay">
+
+    <!-- Score bar -->
+    <div id="score-bar">
+        <span id="ui-home">-</span>
+        <span id="score">0 - 0</span>
+        <span id="ui-away">-</span>
+    </div>
+
+    <!-- Scan hint -->
+    <div id="scan-hint">
+        <p>Point at the Hiro marker</p>
+        <p style="font-size:13px; opacity:0.6; margin-top:6px;">
+            Display this image: ar-js.org/hiro.png
+        </p>
+    </div>
+
+    <!-- Player stats popup -->
+    <div id="stats-popup">
+        <h2 id="stats-name">Player Name</h2>
+        <div id="stats-rows"></div>
+        <button id="close-stats">Close</button>
+    </div>
+
+    <!-- Player list -->
+    <div id="player-panel">
+        <h3>Select a player</h3>
+        <div id="player-list"></div>
+    </div>
+
+</div>
+
+<script type="module" src="./main.js"></script>
+
+</body>
+</html>

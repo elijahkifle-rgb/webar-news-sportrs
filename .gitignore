@@ -1,0 +1,28 @@
+# Environment variables - NEVER commit these
+.env
+.env.local
+frontend/.env
+frontend/.env.local
+football-api-worker/.env
+football-api-worker/.dev.vars
+
+# Dependencies
+node_modules/
+frontend/node_modules/
+football-api-worker/node_modules/
+
+# Build output
+dist/
+frontend/dist/
+
+# Cloudflare
+.wrangler/
+football-api-worker/.wrangler/
+
+# Editor
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db

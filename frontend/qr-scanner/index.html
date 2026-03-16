@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>FootAR – Scan QR Code</title>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #0a0e1a 0%, #1a1f3a 100%);
+            min-height: 100vh;
+        }
+
+        h1 {
+            color: white;
+            margin-top: 50px;
+            font-size: 2rem;
+            letter-spacing: 0.05em;
+        }
+
+        p {
+            color: rgba(255,255,255,0.6);
+            font-size: 16px;
+            margin-top: 10px;
+        }
+
+        #reader {
+            width: 90%;
+            max-width: 400px;
+            margin: 30px auto;
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        }
+
+        #status {
+            color: rgba(255,255,255,0.4);
+            font-size: 13px;
+            margin-top: 16px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>FootAR</h1>
+<p>Scan the match QR code to view live status in AR</p>
+
+<div id="reader"></div>
+<p id="status">Camera starting…</p>
+
+<script>
+    const html5QrCode = new Html5Qrcode("reader")
+    let scanned = false
+
+    html5QrCode.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: 250 },
+        (decodedText) => {
+            if (scanned) return
+            scanned = true
+
+            document.getElementById('status').textContent = '✅ QR detected! Loading match…'
+            console.log('QR Code detected:', decodedText)
+
+            html5QrCode.stop().then(() => {
+                window.location.href = `/ar-view/?id=${decodedText}`
+            }).catch(() => {
+                window.location.href = `/ar-view/?id=${decodedText}`
+            })
+        }
+    ).catch((err) => {
+        console.error('Camera error:', err)
+        document.getElementById('status').textContent = '⚠️ Camera access required.'
+    })
+</script>
+
+</body>
+</html>

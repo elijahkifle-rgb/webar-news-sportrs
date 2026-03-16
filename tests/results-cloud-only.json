@@ -1,0 +1,15 @@
+{
+  "test": "cloud-only (no caching)",
+  "match_id": 538084,
+  "timestamp": "2026-03-16T15:05:01.066Z",
+  "results": {
+    "avg_ms": 207,
+    "min_ms": 85,
+    "med_ms": 147,
+    "max_ms": 461,
+    "p90_ms": 366,
+    "p95_ms": 403,
+    "total_requests": 56,
+    "error_rate": "78.57%"
+  }
+}
