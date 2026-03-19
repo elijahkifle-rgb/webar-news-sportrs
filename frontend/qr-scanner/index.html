@@ -65,7 +65,7 @@
             if (scanned) return
             scanned = true
 
-            document.getElementById('status').textContent = '✅ QR detected! Loading match…'
+            document.getElementById('status').textContent = ' QR detected! Loading match…'
             console.log('QR Code detected:', decodedText)
 
             html5QrCode.stop().then(() => {

@@ -3,7 +3,7 @@ import { initMarkerTracking } from './arsession.js'
 
 // ── 1. Read matchId from URL ──────────────────────────────────────────────────
 const params  = new URLSearchParams(window.location.search)
-const matchId = params.get('id') || '538084'  // West Ham vs Man City fallback
+const matchId = params.get('id') || '552077'
 
 // ── 2. Worker URL from .env ───────────────────────────────────────────────────
 const WORKER_URL = import.meta.env.VITE_WORKER_URL
@@ -184,15 +184,15 @@ function getMockLineup(teamName, teamId) {
 function getMockData() {
     return {
         fixture: {
-            fixture: { id: 538084, status: { short: 'IN_PLAY', elapsed: 45 } },
+            fixture: { id: 552077, status: { short: 'TIMED', elapsed: 0 } },
             teams: {
-                home: { id: 1, name: 'West Ham United' },
-                away: { id: 2, name: 'Manchester City' }
+                home: { id: 1, name: 'Liverpool FC' },
+                away: { id: 2, name: 'Galatasaray SK' }
             },
             goals: { home: 0, away: 0 }
         },
-        homeLineup: getMockLineup('West Ham United', 1),
-        awayLineup: getMockLineup('Manchester City', 2),
+        homeLineup: getMockLineup('Liverpool FC', 1),
+        awayLineup: getMockLineup('Galatasaray SK', 2),
         stats: []
     }
 }

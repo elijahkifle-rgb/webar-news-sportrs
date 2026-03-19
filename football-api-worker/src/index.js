@@ -1,10 +1,14 @@
+// ── Request counter (in-memory, resets on Worker restart) ─────────────────────
+let requestCount  = 0   // total requests received from frontend
+let upstreamCount = 0   // total calls made to football-data.org
+
 // ── Rate limiting ─────────────────────────────────────────────────────────────
 const rateLimitMap = new Map()
 
 function isRateLimited(ip) {
-	const now        = Date.now()
-	const windowMs   = 60 * 1000  // 1 minute
-	const maxRequests = 500        // max per IP per minute
+	const now         = Date.now()
+	const windowMs    = 60 * 1000
+	const maxRequests = 500
 
 	if (!rateLimitMap.has(ip)) {
 		rateLimitMap.set(ip, { count: 1, start: now })
@@ -26,9 +30,9 @@ function isRateLimited(ip) {
 function mapPosition(position) {
 	if (!position) return 'M'
 	const p = position.toUpperCase()
-	if (p.includes('GOALKEEPER'))                            return 'G'
-	if (p.includes('BACK') || p.includes('DEFENCE'))        return 'D'
-	if (p.includes('MIDFIELD'))                             return 'M'
+	if (p.includes('GOALKEEPER'))                                              return 'G'
+	if (p.includes('BACK') || p.includes('DEFENCE'))                          return 'D'
+	if (p.includes('MIDFIELD'))                                               return 'M'
 	if (p.includes('FORWARD') || p.includes('OFFENCE') || p.includes('WINGER')) return 'F'
 	return 'M'
 }
@@ -37,7 +41,7 @@ function mapPosition(position) {
 export default {
 	async fetch(request, env, ctx) {
 
-		// 1. CORS — only allow for frontend
+		// 1. CORS
 		const allowedOrigins = (env.ALLOWED_ORIGINS || '').split(',').map(o => o.trim())
 		const requestOrigin  = request.headers.get('Origin') || ''
 		const isAllowed      = allowedOrigins.includes(requestOrigin)
@@ -87,8 +91,16 @@ export default {
 			})
 		}
 
+		// ── LOGGING: count incoming request from frontend ─────────────────────
+		requestCount++
+		console.log(`[REQUEST] #${requestCount} matchId=${matchId} ip=${clientIP} time=${new Date().toISOString()}`)
+
 		// 7. Fetch from football-data.org
 		try {
+			// ── LOGGING: count upstream call to external service ──────────────
+			upstreamCount++
+			console.log(`[UPSTREAM] #${upstreamCount} matchId=${matchId} calling football-data.org`)
+
 			const response = await fetch(
 				`https://api.football-data.org/v4/matches/${matchId}`,
 				{ headers: { 'X-Auth-Token': API_KEY } }
@@ -98,7 +110,10 @@ export default {
 
 			const data = await response.json()
 
-			// 8. Normalize — score + lineups
+			// ── LOGGING: log result ───────────────────────────────────────────
+			console.log(`[UPSTREAM] #${upstreamCount} matchId=${matchId} status=OK home=${data.score?.fullTime?.home} away=${data.score?.fullTime?.away}`)
+
+			// 8. Normalize response
 			const transformed = {
 				matchId:  data.id,
 				homeTeam: data.homeTeam.name,
@@ -110,8 +125,6 @@ export default {
 				period:   data.status === 'IN_PLAY'  ? 'LIVE'
 					: data.status === 'FINISHED' ? 'FT'
 						: 'UPCOMING',
-
-				// Lineups — empty array if not available yet
 				homeLineup: (data.homeTeam.lineup ?? []).map(p => ({
 					id:     p.id,
 					name:   p.name,
@@ -126,11 +139,20 @@ export default {
 				}))
 			}
 
+			// ── LOGGING: summary after each request ───────────────────────────
+			console.log(`[SUMMARY] totalRequests=${requestCount} totalUpstream=${upstreamCount} ratio=${(upstreamCount/requestCount*100).toFixed(0)}%`)
+
 			return new Response(JSON.stringify(transformed), {
-				headers: { 'Content-Type': 'application/json', ...corsHeaders }
+				headers: {
+					'Content-Type': 'application/json',
+					'X-Request-Count':  String(requestCount),
+					'X-Upstream-Count': String(upstreamCount),
+					...corsHeaders
+				}
 			})
 
 		} catch (error) {
+			console.log(`[ERROR] matchId=${matchId} error=${error.message}`)
 			return new Response(JSON.stringify({ error: error.message }), {
 				status: 500,
 				headers: { 'Content-Type': 'application/json', ...corsHeaders }

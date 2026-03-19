@@ -177,7 +177,13 @@
         vr-mode-ui="enabled: false"
         style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0;"
 >
-    <a-marker id="main-marker" type="hiro" smooth="true">
+    <a-marker
+            id="main-marker"
+            type="pattern"
+            url="./markers/badge_of_kineton.patt"
+            smooth="true"
+            smooth-count="25"
+            smooth-tolerance="0.15">
 
         <!-- Background panel -->
         <a-plane
@@ -250,12 +256,11 @@
 
     <!-- Scan hint -->
     <div id="scan-hint">
-        <p>Point at the Hiro marker</p>
+        <p>Point at the match marker</p>
         <p style="font-size:13px; opacity:0.6; margin-top:6px;">
-            Display this image: ar-js.org/hiro.png
+            Pattern: badge_of_kineton.patt
         </p>
     </div>
-
     <!-- Player stats popup -->
     <div id="stats-popup">
         <h2 id="stats-name">Player Name</h2>

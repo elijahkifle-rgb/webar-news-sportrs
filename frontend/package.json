@@ -10,5 +10,10 @@
   },
   "devDependencies": {
     "vite": "^5.4.21"
+  },
+  "dependencies": {
+    "aframe": "^1.7.1",
+    "ar.js": "^2.2.2",
+    "three": "^0.183.2"
   }
 }
