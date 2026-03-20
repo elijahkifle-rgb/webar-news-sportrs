@@ -37,7 +37,7 @@ function mapPosition(position) {
 	return 'M'
 }
 
-// ── Main Worker ───────────────────────────────────────────────────────────────
+// ── Main Worker
 export default {
 	async fetch(request, env, ctx) {
 
@@ -91,7 +91,7 @@ export default {
 			})
 		}
 
-		// ── LOGGING: count incoming request from frontend ─────────────────────
+		// LOGGING: count incoming request from frontend
 		requestCount++
 		console.log(`[REQUEST] #${requestCount} matchId=${matchId} ip=${clientIP} time=${new Date().toISOString()}`)
 
@@ -110,7 +110,7 @@ export default {
 
 			const data = await response.json()
 
-			// ── LOGGING: log result ───────────────────────────────────────────
+			// LOGGING: log result
 			console.log(`[UPSTREAM] #${upstreamCount} matchId=${matchId} status=OK home=${data.score?.fullTime?.home} away=${data.score?.fullTime?.away}`)
 
 			// 8. Normalize response
@@ -139,7 +139,7 @@ export default {
 				}))
 			}
 
-			// ── LOGGING: summary after each request ───────────────────────────
+			//  LOGGING: summary after each request
 			console.log(`[SUMMARY] totalRequests=${requestCount} totalUpstream=${upstreamCount} ratio=${(upstreamCount/requestCount*100).toFixed(0)}%`)
 
 			return new Response(JSON.stringify(transformed), {

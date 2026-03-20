@@ -1,17 +1,17 @@
 // main.js
 import { initMarkerTracking } from './arsession.js'
 
-// ── 1. Read matchId from URL ──────────────────────────────────────────────────
+// ── 1. Read matchId from URL
 const params  = new URLSearchParams(window.location.search)
 const matchId = params.get('id') || '552077'
 
-// ── 2. Worker URL from .env ───────────────────────────────────────────────────
+// ── 2. Worker URL from .env
 const WORKER_URL = import.meta.env.VITE_WORKER_URL
 
-// ── 3. State ──────────────────────────────────────────────────────────────────
+// 3. State
 let matchData = null
 
-// ── 4. Fetch match data ───────────────────────────────────────────────────────
+//  4. Fetch match data
 async function loadMatchData() {
     try {
         document.getElementById('loading-text').textContent = 'Fetching match...'
@@ -45,7 +45,7 @@ async function loadMatchData() {
     }
 }
 
-// ── 5. Update UI ──────────────────────────────────────────────────────────────
+// ── 5. Update UI
 function updateUI() {
     const { fixture, homeLineup, awayLineup } = matchData
     const homeName  = fixture.teams.home.name
@@ -72,7 +72,7 @@ function updateUI() {
     document.getElementById('loading').style.display = 'none'
 }
 
-// ── 6. Build player list ──────────────────────────────────────────────────────
+// ── 6. Build player list
 const POS_ORDER = { G: 0, D: 1, M: 2, F: 3 }
 
 function buildPlayerList(homePlayers, awayPlayers, homeName, awayName) {
@@ -109,7 +109,7 @@ function makePlayerBtn(player) {
     return btn
 }
 
-// ── 7. Player stats popup ─────────────────────────────────────────────────────
+// ── 7. Player stats popup
 function showPlayerStats(player) {
     const stats = matchData.stats.find(s => s.playerId === player.id)
 
@@ -146,24 +146,22 @@ document.getElementById('close-stats').addEventListener('click', () => {
     document.getElementById('stats-popup').style.display  = 'none'
     document.getElementById('player-panel').style.display = 'block'
 })
-
-// ── 8. Marker tracking ────────────────────────────────────────────────────────
+//  8. Marker tracking
 initMarkerTracking(
+
     () => {
         document.getElementById('scan-hint').style.display    = 'none'
         document.getElementById('player-panel').style.display = 'block'
     },
+
     () => {
-        document.getElementById('scan-hint').style.display    = 'block'
-        document.getElementById('player-panel').style.display = 'none'
         document.getElementById('stats-popup').style.display  = 'none'
     }
 )
-
-// ── 9. Start ──────────────────────────────────────────────────────────────────
+// ── 9. Start
 loadMatchData()
 
-// ── 10. Mock lineup (used until company provides API-Football access) ──────────
+// ── 10. Mock lineup (used until company provides API-Football access)
 function getMockLineup(teamName, teamId) {
     return [
         { id: teamId * 100 + 1,  name: 'Goalkeeper',   number: 1,  pos: 'G', teamId },
@@ -180,7 +178,7 @@ function getMockLineup(teamName, teamId) {
     ]
 }
 
-// ── 11. Full mock fallback (if Worker fails completely) ───────────────────────
+// .Full mock fallback (if Worker fails completely)
 function getMockData() {
     return {
         fixture: {

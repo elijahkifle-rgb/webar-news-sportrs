@@ -1,15 +1,15 @@
 {
   "test": "cloud-only (no caching)",
   "match_id": 538084,
-  "timestamp": "2026-03-18T20:43:03.126Z",
+  "timestamp": "2026-03-20T10:52:56.230Z",
   "results": {
-    "avg_ms": 9690,
-    "min_ms": 158,
-    "med_ms": 335,
-    "max_ms": 19912,
-    "p90_ms": 19781,
-    "p95_ms": 19811,
-    "total_requests": 35,
-    "error_rate": "68.57%"
+    "avg_ms": 102,
+    "min_ms": 50,
+    "med_ms": 83,
+    "max_ms": 378,
+    "p90_ms": 179,
+    "p95_ms": 193,
+    "total_requests": 56,
+    "error_rate": "75.00%"
   }
 }
