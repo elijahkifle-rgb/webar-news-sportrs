@@ -161,7 +161,7 @@ initMarkerTracking(
 // ── 9. Start
 loadMatchData()
 
-// ── 10. Mock lineup (used until company provides API-Football access)
+// ── 10. Mock lineup
 function getMockLineup(teamName, teamId) {
     return [
         { id: teamId * 100 + 1,  name: 'Goalkeeper',   number: 1,  pos: 'G', teamId },

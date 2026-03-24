@@ -5,10 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>FootAR - Match View</title>
 
-    <!-- 1. A-Frame MUST load before AR.js -->
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-
-    <!-- 2. AR.js for A-Frame (marker tracking) -->
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
 
     <style>
@@ -181,6 +178,7 @@
             id="main-marker"
             type="pattern"
             url="./markers/badge_of_kineton.patt"
+        
             smooth="true"
             smooth-count="25"
             smooth-tolerance="0.15"

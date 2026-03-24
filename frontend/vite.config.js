@@ -19,6 +19,8 @@ export default defineConfig({
             input: {
                 scanner: resolve(__dirname, 'qr-scanner/index.html'),
                 arview:  resolve(__dirname, 'ar-view/index.html'),
+
+                generator: resolve(__dirname, 'qr-generator/index.html'),
             }
         }
     }
