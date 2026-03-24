@@ -10,5 +10,8 @@
     "type": "git",
     "url": "https://github.com/elijahkifle-rgb/webar-news-sportrs.git"
   },
-  "private": true
+  "private": true,
+  "dependencies": {
+    "vite": "^8.0.1"
+  }
 }
