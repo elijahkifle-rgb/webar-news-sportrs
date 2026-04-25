@@ -1,0 +1,17 @@
+{
+  "test": "cloud-edge (60s TTL)",
+  "match_id": 552077,
+  "timestamp": "2026-04-21T12:40:08.522Z",
+  "results": {
+    "avg_ms": 731,
+    "min_ms": 72,
+    "med_ms": 149,
+    "max_ms": 5085,
+    "p90_ms": 2249,
+    "p95_ms": 5078,
+    "total_requests": 17,
+    "error_rate": "0.00%",
+    "cache_hit_rate": "76.5%",
+    "mode": "edge-cache-60s"
+  }
+}

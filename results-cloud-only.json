@@ -1,0 +1,17 @@
+{
+  "test": "cloud-only (no cache)",
+  "match_id": 552077,
+  "timestamp": "2026-04-21T12:36:09.946Z",
+  "results": {
+    "avg_ms": 486,
+    "min_ms": 110,
+    "med_ms": 196,
+    "max_ms": 5137,
+    "p90_ms": 338,
+    "p95_ms": 1354,
+    "total_requests": 17,
+    "error_rate": "0.00%",
+    "cache_hit_rate": "0.0%",
+    "mode": "no-cache"
+  }
+}

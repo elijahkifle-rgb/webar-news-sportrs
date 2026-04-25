@@ -2,280 +2,229 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>FootAR - Match View</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>FootAR – Match View</title>
 
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@ar-js-org/ar.js@3.4.5/aframe/build/aframe-ar.js"></script>
 
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { overflow: hidden; font-family: Arial, sans-serif; }
-
-        /* UI layer sits on top of the AR canvas */
-        #ui-overlay {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            pointer-events: none;
-            z-index: 100;
+        *, *::before, *::after {
+            margin: 0; padding: 0; box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
-
-        /* Score bar at the top */
-        #score-bar {
-            background: rgba(0,0,0,0.75);
-            padding: 10px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: white;
-            font-size: 18px;
-            pointer-events: all;
-        }
-
-        #score {
-            font-size: 24px;
-            font-weight: bold;
-            color: #ffff00;
-        }
-
-        /* Hint shown before marker is found */
-        #scan-hint {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: white;
-            text-align: center;
-            text-shadow: 0 0 8px rgba(0,0,0,0.9);
-        }
-
-        #scan-hint p { font-size: 18px; margin-top: 10px; }
-
-        /* Player list panel at the bottom */
-        #player-panel {
-            position: absolute;
-            bottom: 0; left: 0; right: 0;
-            background: rgba(0,0,0,0.85);
-            padding: 12px;
-            display: none;
-            pointer-events: all;
-            max-height: 50vh;
-            overflow-y: auto;
-        }
-
-        #player-panel h3 {
-            color: white;
-            margin-bottom: 8px;
-            font-size: 14px;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-        }
-
-        #player-list {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .player-btn {
-            background: rgba(255,255,255,0.08);
-            border: 1px solid rgba(255,255,255,0.15);
-            border-radius: 8px;
-            color: white;
-            padding: 8px 12px;
-            font-size: 14px;
-            text-align: left;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .player-btn:active { background: rgba(255,255,255,0.2); }
-
-        /* Stats popup */
-        #stats-popup {
-            position: absolute;
-            top: 70px; left: 10px; right: 10px;
-            background: rgba(10,14,26,0.95);
-            border: 1px solid rgba(255,255,255,0.15);
-            border-radius: 12px;
-            padding: 16px;
-            color: white;
-            display: none;
-            pointer-events: all;
-        }
-
-        #stats-popup h2 { font-size: 18px; margin-bottom: 10px; }
-
-        .stat-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 5px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.07);
-            font-size: 14px;
-        }
-
-        .stat-label { color: rgba(255,255,255,0.5); }
-        .stat-value { font-weight: bold; }
-
-        #close-stats {
-            margin-top: 12px;
-            background: #4361ee;
-            border: none;
-            border-radius: 8px;
-            color: white;
-            padding: 8px 16px;
-            cursor: pointer;
-            width: 100%;
-            font-size: 14px;
-        }
-
-        /* Loading spinner */
-        #loading {
-            position: fixed;
-            inset: 0;
+        html, body {
+            width: 100%; height: 100%; overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
             background: #0a0e1a;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            z-index: 999;
+            touch-action: manipulation;
         }
+        a-scene { position: fixed !important; inset: 0 !important; z-index: 0 !important; }
 
-        #loading p { margin-top: 16px; font-size: 16px; }
+        #ui-overlay {
+            position: fixed; inset: 0; pointer-events: none; z-index: 100;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right)
+            env(safe-area-inset-bottom) env(safe-area-inset-left);
+        }
+        #score-bar {
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(0,0,0,0.80); padding: 10px 16px; min-height: 52px;
+            border-bottom: 1px solid rgba(255,255,255,0.08); pointer-events: all;
+        }
+        .team-name {
+            color: white; font-weight: 600; flex: 1;
+            font-size: clamp(11px, 3.5vw, 17px);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 36%;
+        }
+        .team-name.away { text-align: right; }
+        #score {
+            font-size: clamp(18px, 5vw, 28px); font-weight: 700;
+            color: #ffdd00; padding: 0 10px; letter-spacing: 2px;
+        }
+        #mode-toggle {
+            display: flex; gap: 8px; padding: 8px 16px;
+            background: rgba(0,0,0,0.70); pointer-events: all;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+        .mode-btn {
+            flex: 1; min-height: 44px; padding: 8px;
+            border: 1px solid rgba(255,255,255,0.25); border-radius: 8px;
+            background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.7);
+            font-size: clamp(11px, 3vw, 14px); font-weight: 600; cursor: pointer;
+        }
+        .mode-btn.active { background: #4361ee; color: white; border-color: #4361ee; }
+        .mode-btn:active { opacity: 0.75; }
 
+        #scan-hint {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center; pointer-events: none; padding: 0 24px;
+        }
+        #scan-hint p { color: white; font-size: clamp(14px, 4vw, 18px); font-weight: 500;
+            text-shadow: 0 0 12px rgba(0,0,0,0.9); margin-bottom: 6px; }
+        #scan-hint .sub { color: rgba(255,255,255,0.5); font-size: 13px; }
+
+        #player-panel {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            background: rgba(10,14,26,0.92);
+            border-top: 1px solid rgba(255,255,255,0.10);
+            border-radius: 16px 16px 0 0;
+            padding: 12px 16px calc(16px + env(safe-area-inset-bottom));
+            max-height: min(55dvh, 420px);
+            display: none; flex-direction: column; pointer-events: all;
+        }
+        #player-panel::before {
+            content: ''; display: block; width: 36px; height: 4px;
+            background: rgba(255,255,255,0.25); border-radius: 2px; margin: 0 auto 10px;
+        }
+        #player-panel h3 {
+            color: rgba(255,255,255,0.5); font-size: 11px; font-weight: 600;
+            letter-spacing: .1em; text-transform: uppercase; margin-bottom: 8px;
+        }
+        #player-list {
+            display: flex; flex-direction: column; gap: 5px;
+            overflow-y: auto; -webkit-overflow-scrolling: touch; flex: 1;
+        }
+        .team-header { font-size: 11px; font-weight: 700; letter-spacing: .08em;
+            text-transform: uppercase; margin: 8px 0 4px; }
+        .team-header.home { color: #4cc9f0; }
+        .team-header.away { color: #f4a261; }
+        .player-btn {
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.10);
+            border-radius: 10px; color: white; padding: 10px 14px;
+            min-height: 44px; width: 100%; font-size: clamp(12px, 3.5vw, 14px); cursor: pointer;
+        }
+        .player-btn:active { background: rgba(255,255,255,0.15); }
+        .player-info { display: flex; align-items: center; gap: 10px; }
+        .player-number { font-weight: 700; color: rgba(255,255,255,0.5); min-width: 24px; }
+        .player-pos {
+            font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.4);
+            background: rgba(255,255,255,0.08); border-radius: 4px; padding: 2px 6px;
+        }
+        #stats-popup {
+            position: absolute; inset: 0; background: rgba(10,14,26,0.97);
+            padding: calc(16px + env(safe-area-inset-top)) 16px
+            calc(16px + env(safe-area-inset-bottom)) 16px;
+            color: white; display: none; flex-direction: column;
+            overflow-y: auto; pointer-events: all;
+        }
+        .popup-header {
+            display: flex; justify-content: space-between;
+            align-items: flex-start; margin-bottom: 16px;
+        }
+        #stats-name { font-size: clamp(16px, 4.5vw, 22px); font-weight: 700; flex: 1; }
+        #close-stats {
+            background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 50%; color: white; width: 36px; height: 36px;
+            font-size: 18px; cursor: pointer; display: grid; place-items: center;
+            margin-left: 12px; flex-shrink: 0;
+        }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .stat-card {
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 10px; padding: 12px;
+        }
+        .stat-label { color: rgba(255,255,255,0.45); font-size: 11px;
+            text-transform: uppercase; letter-spacing: .05em; display: block; margin-bottom: 4px; }
+        .stat-value { font-size: clamp(20px, 5vw, 26px); font-weight: 700; }
+
+        #loading {
+            position: fixed; inset: 0; background: #0a0e1a;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            color: white; z-index: 999; gap: 20px;
+        }
         .spinner {
-            width: 40px; height: 40px;
-            border: 3px solid rgba(255,255,255,0.1);
-            border-top: 3px solid #4361ee;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
+            width: 44px; height: 44px;
+            border: 3px solid rgba(255,255,255,0.10);
+            border-top-color: #4361ee;
+            border-radius: 50%; animation: spin .8s linear infinite;
         }
-
+        #loading p { color: rgba(255,255,255,0.6); font-size: 15px; }
         @keyframes spin { to { transform: rotate(360deg); } }
+
+        @media (min-width: 768px) {
+            #player-panel, #stats-popup {
+                left: auto; right: 0; top: 0; bottom: 0; width: 320px;
+                max-height: 100%; border-radius: 0;
+                border-left: 1px solid rgba(255,255,255,0.10); border-top: none;
+            }
+        }
+        @media (orientation: landscape) and (max-height: 500px) {
+            #player-panel, #stats-popup {
+                left: 50%; right: 0; top: 0; bottom: 0;
+                max-height: 100%; border-radius: 0;
+                border-left: 1px solid rgba(255,255,255,0.10); border-top: none;
+            }
+        }
     </style>
 </head>
 <body>
 
-<!-- Loading screen -->
 <div id="loading">
     <div class="spinner"></div>
-    <p id="loading-text">Loading match data...</p>
+    <p id="loading-text">Loading match data…</p>
 </div>
 
-<!-- AR.js + A-Frame scene -->
 <a-scene
         embedded
-        arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix;"
+        arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono; matrixCodeType: 3x3;"
         renderer="logarithmicDepthBuffer: true;"
-        vr-mode-ui="enabled: false"
-        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0;"
->
-    <a-marker
-            id="main-marker"
-            type="pattern"
-            url="../markers/badge_of_kineton.patt"
-        
-            smooth="true"
-            smooth-count="25"
-            smooth-tolerance="0.15"
-            smooth-threshold="5">
+        vr-mode-ui="enabled: false">
+    <a-marker id="main-marker" type="pattern" url="/markers/badge_of_kineton.patt"
+              smooth="true"
+              smooth-count="8"
+              smooth-tolerance="0.2"
+              smooth-threshold="3"
+              patternRatio="0.5">
+        <a-plane position="0 0 0" rotation="-90 0 0" width="1.6" height="0.8"
+                 color="#000000" opacity="0.75" side="double"></a-plane>
 
-        <!-- Background panel -->
-        <a-plane
-                position="0 0 0"
-                rotation="-90 0 0"
-                width="1.6" height="0.8"
-                color="#000000"
-                opacity="0.8"
-                side="double">
-        </a-plane>
+        <a-text id="ar-home" value="HOME" position="-0.5 0.01 0.15"
+                rotation="-90 0 0" color="white" scale="0.4 0.4 0.4" align="center"></a-text>
 
-        <!-- Home team name -->
-        <a-text
-                id="ar-home"
-                value="HOME"
-                position="-0.5 0.01 0.15"
-                rotation="-90 0 0"
-                color="white"
-                scale="0.4 0.4 0.4"
-                align="center">
-        </a-text>
+        <a-text id="ar-score" value="0 - 0" position="0 0.01 0.15"
+                rotation="-90 0 0" color="#ffdd00" scale="0.55 0.55 0.55" align="center"></a-text>
 
-        <!-- Score -->
-        <a-text
-                id="ar-score"
-                value="0 - 0"
-                position="0 0.01 0.15"
-                rotation="-90 0 0"
-                color="#ffff00"
-                scale="0.55 0.55 0.55"
-                align="center">
-        </a-text>
+        <a-text id="ar-away" value="AWAY" position="0.5 0.01 0.15"
+                rotation="-90 0 0" color="white" scale="0.4 0.4 0.4" align="center"></a-text>
 
-        <!-- Away team name -->
-        <a-text
-                id="ar-away"
-                value="AWAY"
-                position="0.5 0.01 0.15"
-                rotation="-90 0 0"
-                color="white"
-                scale="0.4 0.4 0.4"
-                align="center">
-        </a-text>
-
-        <!-- Match status -->
-        <a-text
-                id="ar-status"
-                value="LIVE"
-                position="0 0.01 -0.1"
-                rotation="-90 0 0"
-                color="#00ff88"
-                scale="0.3 0.3 0.3"
-                align="center">
-        </a-text>
-
+        <a-text id="ar-status" value="LIVE" position="0 0.01 -0.1"
+                rotation="-90 0 0" color="#00ff88" scale="0.3 0.3 0.3" align="center"></a-text>
     </a-marker>
 
     <a-entity camera></a-entity>
 </a-scene>
 
-<!-- HTML UI overlay -->
 <div id="ui-overlay">
-
-    <!-- Score bar -->
     <div id="score-bar">
-        <span id="ui-home">-</span>
+        <span id="ui-home" class="team-name home">—</span>
         <span id="score">0 - 0</span>
-        <span id="ui-away">-</span>
+        <span id="ui-away" class="team-name away">—</span>
     </div>
-
-    <!-- Scan hint -->
+    <div id="mode-toggle">
+        <button id="btn-ar" class="mode-btn active">AR VIEW</button>
+        <button id="btn-stats" class="mode-btn">STATS</button>
+    </div>
     <div id="scan-hint">
         <p>Point at the match marker</p>
-        <p style="font-size:13px; opacity:0.6; margin-top:6px;">
-            Pattern: badge_of_kineton.patt
-        </p>
+        <p class="sub">badge_of_kineton.patt</p>
     </div>
-    <!-- Player stats popup -->
     <div id="stats-popup">
-        <h2 id="stats-name">Player Name</h2>
-        <div id="stats-rows"></div>
-        <button id="close-stats">Close</button>
+        <div class="popup-header">
+            <h2 id="stats-name">Player</h2>
+            <button id="close-stats">✕</button>
+        </div>
+        <div id="stats-rows" class="stats-grid"></div>
     </div>
-
-    <!-- Player list -->
     <div id="player-panel">
         <h3>Select a player</h3>
         <div id="player-list"></div>
     </div>
-
 </div>
 
 <script type="module" src="./main.js"></script>
-
 </body>
 </html>

@@ -5,438 +5,74 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FootAR – QR Generator</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg:        #080b14;
-            --surface:   #0f1524;
-            --border:    rgba(255,255,255,0.07);
-            --accent:    #00e5ff;
-            --accent2:   #f97316;
-            --text:      #e8eaf0;
-            --muted:     rgba(232,234,240,0.4);
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-
-        body {
-            background: var(--bg);
-            color: var(--text);
-            font-family: 'DM Sans', sans-serif;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 40px 20px 60px;
-            position: relative;
-            overflow-x: hidden;
-        }
-
-        /* Background grid */
-        body::before {
-            content: '';
-            position: fixed;
-            inset: 0;
-            background-image:
-                linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
-            background-size: 40px 40px;
-            pointer-events: none;
-        }
-
-        /* Glow blob */
-        body::after {
-            content: '';
-            position: fixed;
-            top: -200px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 600px;
-            height: 600px;
-            background: radial-gradient(circle, rgba(0,229,255,0.06) 0%, transparent 70%);
-            pointer-events: none;
-        }
-
-        header {
-            text-align: center;
-            margin-bottom: 48px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .logo {
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 3.5rem;
-            letter-spacing: 0.12em;
-            background: linear-gradient(135deg, #fff 30%, var(--accent));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            line-height: 1;
-        }
-
-        .logo span {
-            background: linear-gradient(135deg, var(--accent), var(--accent2));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .tagline {
-            color: var(--muted);
-            font-size: 13px;
-            letter-spacing: 0.2em;
-            text-transform: uppercase;
-            margin-top: 8px;
-            font-family: 'DM Mono', monospace;
-        }
-
-        .card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 36px;
-            width: 100%;
-            max-width: 480px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .card-title {
-            font-family: 'DM Mono', monospace;
-            font-size: 11px;
-            letter-spacing: 0.2em;
-            text-transform: uppercase;
-            color: var(--accent);
-            margin-bottom: 24px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .card-title::before {
-            content: '';
-            display: inline-block;
-            width: 6px;
-            height: 6px;
-            background: var(--accent);
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
-
-        label {
-            display: block;
-            font-size: 12px;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            color: var(--muted);
-            font-family: 'DM Mono', monospace;
-            margin-bottom: 8px;
-        }
-
-        input {
-            width: 100%;
-            background: rgba(255,255,255,0.04);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 14px 16px;
-            color: var(--text);
-            font-family: 'DM Mono', monospace;
-            font-size: 1.1rem;
-            outline: none;
-            transition: border-color 0.2s, box-shadow 0.2s;
-            margin-bottom: 20px;
-        }
-
-        input:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(0,229,255,0.1);
-        }
-
-        input::placeholder { color: rgba(255,255,255,0.2); }
-
-        .match-label-input {
-            font-size: 0.95rem;
-        }
-
-        button {
-            width: 100%;
-            padding: 15px;
-            background: linear-gradient(135deg, var(--accent), #0099bb);
-            border: none;
-            border-radius: 10px;
-            color: #080b14;
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 1.2rem;
-            letter-spacing: 0.15em;
-            cursor: pointer;
-            transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
-        }
-
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(0,229,255,0.25);
-        }
-
-        button:active { transform: translateY(0); }
-
-        /* QR Output */
-        .output {
-            margin-top: 32px;
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            gap: 24px;
-            animation: fadeUp 0.4s ease forwards;
-        }
-
-        .output.visible { display: flex; }
-
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(16px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-
-        .divider {
-            width: 100%;
-            height: 1px;
-            background: var(--border);
-        }
-
-        .match-info {
-            text-align: center;
-        }
-
-        .match-info .match-name {
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 1.4rem;
-            letter-spacing: 0.1em;
-            color: var(--accent2);
-        }
-
-        .match-info .match-id-display {
-            font-family: 'DM Mono', monospace;
-            font-size: 12px;
-            color: var(--muted);
-            margin-top: 4px;
-        }
-
-        .qr-frame {
-            background: white;
-            border-radius: 16px;
-            padding: 20px;
-            position: relative;
-            box-shadow: 0 0 40px rgba(0,229,255,0.15);
-        }
-
-        .qr-frame::before, .qr-frame::after {
-            content: '';
-            position: absolute;
-            width: 20px;
-            height: 20px;
-            border-color: var(--accent);
-            border-style: solid;
-        }
-
-        .qr-frame::before {
-            top: -4px; left: -4px;
-            border-width: 3px 0 0 3px;
-            border-radius: 4px 0 0 0;
-        }
-
-        .qr-frame::after {
-            bottom: -4px; right: -4px;
-            border-width: 0 3px 3px 0;
-            border-radius: 0 0 4px 0;
-        }
-
-        #qrcode canvas, #qrcode img {
-            display: block;
-            border-radius: 4px;
-        }
-
-        .actions {
-            display: flex;
-            gap: 12px;
-            width: 100%;
-        }
-
-        .btn-secondary {
-            background: transparent;
-            border: 1px solid var(--border);
-            color: var(--text);
-            font-family: 'DM Sans', sans-serif;
-            font-size: 0.85rem;
-            letter-spacing: 0.05em;
-            padding: 12px;
-            border-radius: 10px;
-            flex: 1;
-            cursor: pointer;
-            transition: border-color 0.2s, background 0.2s;
-        }
-
-        .btn-secondary:hover {
-            border-color: var(--accent);
-            background: rgba(0,229,255,0.05);
-            transform: none;
-            box-shadow: none;
-        }
-
-        .btn-download {
-            background: linear-gradient(135deg, var(--accent2), #c2410c);
-            color: white;
-            flex: 1;
-        }
-
-        .url-preview {
-            width: 100%;
-            background: rgba(0,0,0,0.3);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 10px 14px;
-            font-family: 'DM Mono', monospace;
-            font-size: 11px;
-            color: var(--muted);
-            word-break: break-all;
-            text-align: center;
-        }
-
-        .url-preview span { color: var(--accent); }
+        *{box-sizing:border-box;margin:0;padding:0;}
+        body{background:#080b14;color:#e8eaf0;font-family:sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:40px 20px;}
+        .card{background:#0f1524;border:1px solid rgba(255,255,255,0.07);border-radius:20px;padding:36px;width:100%;max-width:480px;}
+        input,button{width:100%;padding:14px;margin:8px 0;border-radius:10px;font-family:monospace;}
+        input{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);color:#fff;}
+        button{background:#00e5ff;border:none;font-weight:bold;cursor:pointer;}
+        .output{display:none;margin-top:32px;text-align:center;}
+        .output.visible{display:block;}
+        .qr-frame{background:white;padding:20px;display:inline-block;border-radius:16px;}
+        .actions{display:flex;gap:12px;margin-top:20px;}
+        .btn-secondary{background:transparent;border:1px solid rgba(255,255,255,0.07);color:#fff;}
     </style>
 </head>
 <body>
-
-<header>
-    <div class="logo">Foot<span>AR</span></div>
-    <div class="tagline">Match QR Generator</div>
-</header>
-
 <div class="card">
-    <div class="card-title">Generate Match QR Code</div>
-
+    <h3>FootAR – Match QR Generator</h3>
     <label>Match ID</label>
-    <input type="number" id="matchId" placeholder="e.g. 552077" min="1" />
-
-    <label>Match Label <span style="color:rgba(255,255,255,0.2); font-size:10px;">(optional)</span></label>
-    <input type="text" id="matchLabel" class="match-label-input" placeholder="e.g. Liverpool vs Galatasaray" />
-
+    <input type="number" id="matchId" placeholder="e.g. 552077" min="1">
+    <label>Match Label (optional)</label>
+    <input type="text" id="matchLabel" placeholder="e.g. Liverpool vs Galatasaray">
     <button onclick="generateQR()">Generate QR Code</button>
 
     <div class="output" id="output">
-        <div class="divider"></div>
-
-        <div class="match-info">
-            <div class="match-name" id="labelDisplay"></div>
-            <div class="match-id-display" id="idDisplay"></div>
-        </div>
-
-        <div class="qr-frame">
-            <div id="qrcode"></div>
-        </div>
-
-        <div class="url-preview" id="urlPreview"></div>
-
+        <div class="qr-frame" id="qrcode"></div>
         <div class="actions">
             <button class="btn-secondary" onclick="copyId()">Copy Match ID</button>
-            <button class="btn-secondary btn-download" onclick="downloadQR()">Download PNG</button>
+            <button class="btn-secondary" onclick="downloadQR()">Download PNG</button>
         </div>
     </div>
 </div>
 
 <script>
-    let currentMatchId = ''
-
+    let currentMatchId = '';
     function generateQR() {
-        const matchId = document.getElementById('matchId').value.trim()
-        const label   = document.getElementById('matchLabel').value.trim()
-
-        if (!matchId || isNaN(matchId)) {
-            document.getElementById('matchId').focus()
-            document.getElementById('matchId').style.borderColor = '#f97316'
-            setTimeout(() => document.getElementById('matchId').style.borderColor = '', 1500)
-            return
-        }
-
-        currentMatchId = matchId
-
-        // Clear previous QR
-        const qrContainer = document.getElementById('qrcode')
-        qrContainer.innerHTML = ''
-
-        // Generate new QR — encode only the match ID number
-        new QRCode(qrContainer, {
-            text: matchId,
-            width: 220,
-            height: 220,
-            colorDark: '#000000',
-            colorLight: '#ffffff',
-            correctLevel: QRCode.CorrectLevel.H
-        })
-
-        // Update info
-        document.getElementById('labelDisplay').textContent = label || `Match #${matchId}`
-        document.getElementById('idDisplay').textContent    = `Match ID: ${matchId}`
-        document.getElementById('urlPreview').innerHTML     =
-            `QR encodes: <span>${matchId}</span> → redirects to <span>/ar-view/?id=${matchId}</span>`
-
-        // Show output
-        const output = document.getElementById('output')
-        output.classList.remove('visible')
-        void output.offsetWidth // reflow to retrigger animation
-        output.classList.add('visible')
+        const matchId = document.getElementById('matchId').value.trim();
+        if (!matchId || isNaN(matchId)) return;
+        currentMatchId = matchId;
+        const qrContainer = document.getElementById('qrcode');
+        qrContainer.innerHTML = '';
+        new QRCode(qrContainer, { text: matchId, width: 220, height: 220 });
+        document.getElementById('output').classList.add('visible');
     }
-
     function copyId() {
-        navigator.clipboard.writeText(currentMatchId).then(() => {
-            const btn = event.target
-            btn.textContent = 'Copied!'
-            setTimeout(() => btn.textContent = 'Copy Match ID', 1500)
-        })
+        navigator.clipboard.writeText(currentMatchId).then(() => alert('Copied!'));
     }
-
     function downloadQR() {
-        const canvas = document.querySelector('#qrcode canvas')
-        if (!canvas) return
-
-        // Add padding + label to downloaded image
-        const label   = document.getElementById('matchLabel').value.trim() || `Match #${currentMatchId}`
-        const padding = 24
-        const labelH  = 40
-
-        const out = document.createElement('canvas')
-        out.width  = canvas.width  + padding * 2
-        out.height = canvas.height + padding * 2 + labelH
-
-        const ctx = out.getContext('2d')
-        ctx.fillStyle = '#ffffff'
-        ctx.fillRect(0, 0, out.width, out.height)
-        ctx.drawImage(canvas, padding, padding)
-
-        // Label
-        ctx.fillStyle = '#111111'
-        ctx.font      = 'bold 14px Arial'
-        ctx.textAlign = 'center'
-        ctx.fillText(label, out.width / 2, canvas.height + padding + labelH / 2 + 5)
-
-        const link    = document.createElement('a')
-        link.download = `footar-match-${currentMatchId}.png`
-        link.href     = out.toDataURL('image/png')
-        link.click()
+        const canvas = document.querySelector('#qrcode canvas');
+        if (!canvas) return;
+        const label = document.getElementById('matchLabel').value.trim() || `Match #${currentMatchId}`;
+        const out = document.createElement('canvas');
+        out.width = canvas.width + 48;
+        out.height = canvas.height + 48 + 40;
+        const ctx = out.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, out.width, out.height);
+        ctx.drawImage(canvas, 24, 24);
+        ctx.fillStyle = '#111111';
+        ctx.font = 'bold 14px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(label, out.width / 2, canvas.height + 24 + 24);
+        const link = document.createElement('a');
+        link.download = `footar-match-${currentMatchId}.png`;
+        link.href = out.toDataURL('image/png');
+        link.click();
     }
-
-    // Allow Enter key to generate
-    document.getElementById('matchId').addEventListener('keydown', e => {
-        if (e.key === 'Enter') generateQR()
-    })
-    document.getElementById('matchLabel').addEventListener('keydown', e => {
-        if (e.key === 'Enter') generateQR()
-    })
+    document.getElementById('matchId').addEventListener('keydown', e => e.key === 'Enter' && generateQR());
+    document.getElementById('matchLabel').addEventListener('keydown', e => e.key === 'Enter' && generateQR());
 </script>
-
 </body>
 </html>

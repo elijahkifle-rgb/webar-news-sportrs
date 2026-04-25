@@ -10,6 +10,7 @@ export function initMarkerTracking(onMarkerFound, onMarkerLost) {
         let markerLostTimer = null
 
         marker.addEventListener('markerFound', () => {
+            // Cancel any pending lost timer
             if (markerLostTimer) {
                 clearTimeout(markerLostTimer)
                 markerLostTimer = null
